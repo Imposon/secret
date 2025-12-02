@@ -12,3 +12,4 @@ backend/.env
 
 # Build
 frontend/build/
+.DS_Store
