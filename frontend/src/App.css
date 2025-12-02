@@ -1,0 +1,110 @@
+/* Global */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+}
+
+/* Layout */
+.main-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: #1f2937;
+  color: #fff;
+  padding: 18px;
+  overflow-y: auto;
+  border-right: 1px solid #111827;
+}
+.sidebar h3 {
+  margin-top: 0;
+  color: #10b981;
+  margin-bottom: 12px;
+}
+.db-header {
+  cursor: pointer;
+  padding: 8px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.table-list { padding-left: 8px; margin-top: 8px; }
+.table-item { cursor: pointer; padding: 6px 8px; border-radius: 4px; color: #e5e7eb; }
+.table-item:hover { background: rgba(255,255,255,0.03); }
+
+/* Column list */
+.column-list { padding-left: 14px; margin-top: 6px; color: #cbd5e1; }
+.column-item { padding: 3px 0; font-size: 13px; }
+
+/* Workspace */
+.workspace {
+  flex: 1;
+  padding: 22px;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+h1 { color: #b91c1c; margin: 0 0 12px 0; }
+.db-indicator { display: inline-block; background: #fff; padding: 6px 10px; border-radius: 6px; border: 1px solid #e6e6e6; margin-bottom: 14px; }
+
+/* SQL cell */
+.sql-cell {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+.sql-cell.active {
+  border: 2px solid #2563eb;
+  box-shadow: 0 6px 18px rgba(37,99,235,0.08);
+}
+.cell-toolbar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+.cell-actions { display:flex; gap:8px; align-items:center; }
+.run-btn, .delete-btn {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.run-btn { background: #2563eb; color: white; }
+.delete-btn { background: #ef4444; color: white; }
+
+/* Result area */
+.result-box { margin-top: 12px; background: #f3f4f6; padding: 10px; border-radius: 6px; border: 1px solid #e6e6e6; }
+.table-container { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+th { background: #2563eb; color: #fff; padding: 10px; text-align:left; }
+td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+
+/* Buttons */
+.add-cell-btn {
+  background: #10b981;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+.error { color: #ef4444; margin-top: 8px; }
+@media (max-width: 900px) {
+  .main-layout { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; order: 2; }
+  .workspace { order: 1; padding: 12px; }
+  .sql-cell { margin: 12px 0; }
+}
+.auth-box input, .auth-box button { display:block; width:100%; margin:8px 0; padding:8px; }
+.history-panel { max-height: 300px; overflow:auto; }
