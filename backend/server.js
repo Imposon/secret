@@ -204,4 +204,4 @@ app.post("/api/query", async (req, res) => {
 // START SERVER
 // =========================================
 
-app.listen(5001, () => console.log("🚀 Backend running on http://localhost:5001"));
+app.listen(5003, () => console.log("🚀 Backend running on http://localhost:5001"));

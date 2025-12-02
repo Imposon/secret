@@ -11,7 +11,6 @@ export default function Home() {
           <Link to="/" style={styles.navLink}>Home</Link>
           <Link to="/studio" style={styles.navLink}>Studio</Link>
           <Link to="/history" style={styles.navLink}>History</Link>
-          <Link to="/pricing" style={styles.navLink}>Pricing</Link>
           <Link to="/auth" style={styles.loginBtn}>Login</Link>
         </div>
       </nav>
