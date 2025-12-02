@@ -11,17 +11,13 @@ app.use(express.json());
 
 console.log("🔥 Starting Clean SQL Runner Backend...");
 
-// =========================================
-// DATABASE CONNECTIONS
-// =========================================
-
-// SQLITE
+//
 const sqliteDB = new sqlite3.Database("./prisma/dev.db", err => {
   if (err) console.error("❌ SQLite error:", err);
   else console.log("✅ SQLite connected");
 });
 
-// MYSQL
+//
 let mysqlDB;
 (async () => {
   try {
@@ -37,31 +33,34 @@ let mysqlDB;
   }
 })();
 
-// POSTGRES
+//
+// POSTGRES (Railway)
+// POSTGRES (Railway)
 let pgClient;
 (async () => {
   try {
     pgClient = new PGClient({
-      host: process.env.POSTGRES_HOST,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASS,
-      database: process.env.POSTGRES_DB,
-      port: process.env.POSTGRES_PORT || 5432
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,   // required for Railway
+      },
     });
+
     await pgClient.connect();
-    console.log("✅ PostgreSQL connected");
+    console.log("✅ PostgreSQL connected (Railway SSL enabled)");
   } catch (err) {
-    console.log("❌ PostgreSQL not connected:", err.message);
+    console.error("❌ PostgreSQL not connected:", err.message);
   }
 })();
 
-// =========================================
-// FETCH TABLES
-// =========================================
 
+
+
+//
+//
 app.get("/api/databases", async (req, res) => {
   try {
-    // SQLite tables
+    // SQLite
     const sqliteTables = await new Promise(resolve => {
       sqliteDB.all(
         `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`,
@@ -70,14 +69,14 @@ app.get("/api/databases", async (req, res) => {
       );
     });
 
-    // MySQL tables
+    // MySQL
     let mysqlTables = [];
     try {
       const [rows] = await mysqlDB.query(`SHOW TABLES`);
       mysqlTables = rows.map(r => Object.values(r)[0]);
     } catch {}
 
-    // PostgreSQL tables
+    // Postgres
     let pgTables = [];
     try {
       const result = await pgClient.query(`
@@ -98,10 +97,8 @@ app.get("/api/databases", async (req, res) => {
   }
 });
 
-// =========================================
-// FETCH COLUMNS
-// =========================================
 
+//
 app.get("/api/columns/:db/:table", async (req, res) => {
   const { db, table } = req.params;
 
@@ -133,16 +130,13 @@ app.get("/api/columns/:db/:table", async (req, res) => {
   }
 });
 
-// =========================================
-// EXECUTE SQL QUERY
-// =========================================
 
+//
 app.post("/api/query", async (req, res) => {
   const { query, db } = req.body;
 
   if (!query) return res.json({ success: false, error: "Query required" });
 
-  // Split multiple statements
   const statements = query
     .split(";")
     .map(s => s.trim())
@@ -200,8 +194,9 @@ app.post("/api/query", async (req, res) => {
   }
 });
 
-// =========================================
-// START SERVER
-// =========================================
 
-app.listen(5003, () => console.log("🚀 Backend running on http://localhost:5001"));
+
+//
+app.listen(5003, () =>
+  console.log("🚀 Backend running on http://localhost:5003")
+);
