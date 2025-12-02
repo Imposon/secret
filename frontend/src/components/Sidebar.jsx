@@ -1,75 +1,38 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 
-export default function Sidebar({ onSelectDB, onSelectTable }) {
-  const [databases, setDatabases] = useState([]);
-  const [expandedDBs, setExpandedDBs] = useState({});
-  const [expandedTables, setExpandedTables] = useState({});
-  const [columnsCache, setColumnsCache] = useState({});
+export default function Sidebar({ databases, onSelectTable }) {
+  const [expanded, setExpanded] = useState({});
 
-  useEffect(() => {
-    loadDatabases();
-  }, []);
-
-  async function loadDatabases() {
-    try {
-      const res = await axios.get("http://localhost:5001/api/databases");
-      setDatabases(res.data || []);
-    } catch (err) {
-      console.error("Failed to load databases:", err);
-    }
-  }
-
-  function toggleDB(dbType) {
-    setExpandedDBs((p) => ({ ...p, [dbType]: !p[dbType] }));
-    if (onSelectDB) onSelectDB(dbType);
-  }
-
-  async function toggleTable(dbType, table) {
-    const key = `${dbType}.${table}`;
-    setExpandedTables((p) => ({ ...p, [key]: !p[key] }));
-
-    if (!columnsCache[key]) {
-      try {
-        const res = await axios.get(`http://localhost:5001/api/columns/${dbType}/${table}`);
-        const cols = (res.data || []).map((c) => c.name || c.column_name || c.column_name);
-        setColumnsCache((p) => ({ ...p, [key]: cols }));
-      } catch (err) {
-        setColumnsCache((p) => ({ ...p, [key]: [] }));
-      }
-    }
-  }
+  const toggleDB = (db) => {
+    setExpanded((prev) => ({ ...prev, [db]: !prev[db] }));
+  };
 
   return (
-    <div className="sidebar">
-      <h3>📁 Databases</h3>
+    <div style={styles.sidebar}>
+      <h2 style={styles.title}>📁 Databases</h2>
 
       {databases.map((db) => (
-        <div key={db.type} className="db-item">
-          <div className="db-header" onClick={() => toggleDB(db.type)} role="button">
-            {expandedDBs[db.type] ? "▾" : "▸"} {db.name}
+        <div key={db.name} style={styles.dbBlock}>
+          <div style={styles.dbHeader} onClick={() => toggleDB(db.name)}>
+            <span>{expanded[db.name] ? "▼" : "▶"}</span>
+            <strong style={{ marginLeft: "8px" }}>{db.name}</strong>
           </div>
 
-          {expandedDBs[db.type] && (
-            <div className="table-list">
-              {db.tables && db.tables.length ? db.tables.map((t) => {
-                const key = `${db.type}.${t}`;
-                return (
-                  <div key={t} className="table-wrap">
-                    <div className="table-item" onClick={() => { toggleTable(db.type, t); onSelectTable && onSelectTable(db.type, t); }}>
-                      {expandedTables[key] ? "▾" : "•"} {t}
-                    </div>
-
-                    {expandedTables[key] && (
-                      <div className="column-list">
-                        {(columnsCache[key] || []).map((col) => (
-                          <div className="column-item" key={col}>- {col}</div>
-                        ))}
-                      </div>
-                    )}
+          {expanded[db.name] && (
+            <div style={styles.tableList}>
+              {db.tables.length > 0 ? (
+                db.tables.map((t) => (
+                  <div
+                    key={t}
+                    style={styles.tableItem}
+                    onClick={() => onSelectTable(db.type, t)}
+                  >
+                    • {t}
                   </div>
-                );
-              }) : <div className="empty">No tables</div>}
+                ))
+              ) : (
+                <div style={styles.noTables}>No tables</div>
+              )}
             </div>
           )}
         </div>
@@ -77,3 +40,53 @@ export default function Sidebar({ onSelectDB, onSelectTable }) {
     </div>
   );
 }
+
+const styles = {
+  sidebar: {
+    width: "260px",
+    background: "#14181e",
+    borderRight: "1px solid rgba(255,255,255,0.08)",
+    padding: "20px",
+    color: "white",
+    height: "calc(100vh - 70px)",
+    overflowY: "auto",
+    position: "fixed",
+    top: "70px",
+    left: 0,
+  },
+
+  title: {
+    fontSize: "20px",
+    marginBottom: "20px",
+    color: "#ff4d7a",
+  },
+
+  dbBlock: {
+    marginBottom: "15px",
+  },
+
+  dbHeader: {
+    cursor: "pointer",
+    padding: "8px 5px",
+    borderRadius: "6px",
+    transition: "0.2s",
+    display: "flex",
+    alignItems: "center",
+  },
+
+  tableList: {
+    marginLeft: "18px",
+    marginTop: "8px",
+  },
+
+  tableItem: {
+    padding: "4px 0",
+    cursor: "pointer",
+    color: "rgba(255,255,255,0.7)",
+  },
+
+  noTables: {
+    padding: "4px 0",
+    color: "rgba(255,255,255,0.4)",
+  }
+};
