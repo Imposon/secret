@@ -4,6 +4,9 @@
     "@codemirror/basic-setup": "^0.20.0",
     "@codemirror/lang-sql": "^6.10.0",
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.8"
+    "@codemirror/view": "^6.38.8",
+    "file-saver": "^2.0.5",
+    "jspdf": "^3.0.4",
+    "xlsx": "^0.18.5"
   }
 }

@@ -1,9 +1,12 @@
+// src/api.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5001"
+  baseURL: "http://localhost:5001",
+  timeout: 30000,
 });
 
+// set token in default headers and localStorage
 export function setAuthToken(token) {
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -14,7 +17,10 @@ export function setAuthToken(token) {
   }
 }
 
-const token = localStorage.getItem("token");
-if (token) setAuthToken(token);
+// initialize from storage (if present)
+const stored = localStorage.getItem("token");
+if (stored) {
+  api.defaults.headers.common["Authorization"] = `Bearer ${stored}`;
+}
 
 export default api;
