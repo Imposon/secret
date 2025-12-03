@@ -197,6 +197,6 @@ app.post("/api/query", async (req, res) => {
 
 
 //
-app.listen(5003, () =>
-  console.log("🚀 Backend running on http://localhost:5003")
+app.listen(process.env.PORT || 5003, () =>
+  console.log(`🚀 Backend running on http://localhost:${process.env.PORT || 5003}`)
 );
