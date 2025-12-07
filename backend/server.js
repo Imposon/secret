@@ -237,7 +237,7 @@ app.post("/api/query", async (req, res) => {
     // MySQL
     if (db === "mysql") {
       if (!mysqlDB) {
-        return res.status(500).json({ success: false, error: "MySQL not connected" });
+        return res.status(400).json({ success: false, error: "MySQL not connected" });
       }
       for (const stmt of statements) {
         const [rows] = await mysqlDB.query(stmt);
@@ -249,7 +249,7 @@ app.post("/api/query", async (req, res) => {
     // PostgreSQL
     if (db === "postgres") {
       if (!pgClient) {
-        return res.status(500).json({ success: false, error: "PostgreSQL not connected" });
+        return res.status(400).json({ success: false, error: "PostgreSQL not connected" });
       }
       for (const stmt of statements) {
         const result = await pgClient.query(stmt);

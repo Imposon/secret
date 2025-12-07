@@ -79,24 +79,28 @@ export default function Studio() {
           {error && <p style={styles.error}>{error}</p>}
 
           {Array.isArray(result) ? (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  {Object.keys(result[0] || {}).map((c) => (
-                    <th key={c} style={styles.th}>{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result.map((row, i) => (
-                  <tr key={i}>
-                    {Object.values(row).map((v, j) => (
-                      <td key={j} style={styles.td}>{String(v)}</td>
+            result.length > 0 ? (
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    {Object.keys(result[0] || {}).map((c) => (
+                      <th key={c} style={styles.th}>{c}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {result.map((row, i) => (
+                    <tr key={i}>
+                      {Object.values(row).map((v, j) => (
+                        <td key={j} style={styles.td}>{String(v)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p style={{ color: "#aaa" }}>No results found (0 rows).</p>
+            )
           ) : (
             <p style={{ color: "#aaa" }}>Run a query to view results...</p>
           )}
