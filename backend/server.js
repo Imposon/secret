@@ -4,6 +4,8 @@ const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const mysql = require("mysql2/promise");
 const { Client: PGClient } = require("pg");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(cors());
@@ -14,7 +16,19 @@ console.log("🔥 Starting Clean SQL Runner Backend...");
 //
 const sqliteDB = new sqlite3.Database("./prisma/dev.db", err => {
   if (err) console.error("❌ SQLite error:", err);
-  else console.log("✅ SQLite connected");
+  else {
+    console.log("✅ SQLite connected");
+    // Init Users Table
+    sqliteDB.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT,
+        name TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  }
 });
 
 //
@@ -58,6 +72,47 @@ let pgClient;
 
 //
 //
+//
+// AUTH
+//
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-123";
+
+app.post("/api/auth/register", async (req, res) => {
+  const { email, password, name } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    sqliteDB.run(
+      `INSERT INTO users (email, password, name) VALUES (?, ?, ?)`,
+      [email, hash, name],
+      function (err) {
+        if (err) {
+          if (err.message.includes("UNIQUE")) return res.status(400).json({ error: "User exists" });
+          return res.status(500).json({ error: err.message });
+        }
+        const token = jwt.sign({ id: this.lastID, email }, JWT_SECRET);
+        res.json({ token });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+  sqliteDB.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
+    if (err || !user) return res.status(400).json({ error: "Invalid credentials" });
+    
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
+    res.json({ token });
+  });
+});
+
 app.get("/api/databases", async (req, res) => {
   try {
     // SQLite
@@ -71,21 +126,25 @@ app.get("/api/databases", async (req, res) => {
 
     // MySQL
     let mysqlTables = [];
-    try {
-      const [rows] = await mysqlDB.query(`SHOW TABLES`);
-      mysqlTables = rows.map(r => Object.values(r)[0]);
-    } catch {}
+    if (mysqlDB) {
+      try {
+        const [rows] = await mysqlDB.query(`SHOW TABLES`);
+        mysqlTables = rows.map(r => Object.values(r)[0]);
+      } catch {}
+    }
 
     // Postgres
     let pgTables = [];
-    try {
-      const result = await pgClient.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public';
-      `);
-      pgTables = result.rows.map(r => r.table_name);
-    } catch {}
+    if (pgClient) {
+      try {
+        const result = await pgClient.query(`
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema = 'public';
+        `);
+        pgTables = result.rows.map(r => r.table_name);
+      } catch {}
+    }
 
     res.json([
       { type: "sqlite", name: "SQLite", tables: sqliteTables },
@@ -111,11 +170,17 @@ app.get("/api/columns/:db/:table", async (req, res) => {
     }
 
     if (db === "mysql") {
+      if (!mysqlDB) {
+        return res.json([]);
+      }
       const [cols] = await mysqlDB.query(`DESCRIBE ${table}`);
       return res.json(cols);
     }
 
     if (db === "postgres") {
+      if (!pgClient) {
+        return res.json([]);
+      }
       const result = await pgClient.query(`
         SELECT column_name, data_type 
         FROM information_schema.columns 
@@ -171,6 +236,9 @@ app.post("/api/query", async (req, res) => {
 
     // MySQL
     if (db === "mysql") {
+      if (!mysqlDB) {
+        return res.status(500).json({ success: false, error: "MySQL not connected" });
+      }
       for (const stmt of statements) {
         const [rows] = await mysqlDB.query(stmt);
         lastResult = rows;
@@ -180,6 +248,9 @@ app.post("/api/query", async (req, res) => {
 
     // PostgreSQL
     if (db === "postgres") {
+      if (!pgClient) {
+        return res.status(500).json({ success: false, error: "PostgreSQL not connected" });
+      }
       for (const stmt of statements) {
         const result = await pgClient.query(stmt);
         lastResult = result.rows;
