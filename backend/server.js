@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose();
+
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -13,24 +13,8 @@ app.use(express.json());
 console.log("🔥 Starting Clean SQL Runner Backend...");
 
 //
-const sqliteDB = new sqlite3.Database("./prisma/dev.db", (err) => {
-  if (err) console.error("❌ SQLite error:", err);
-  else {
-    console.log("✅ SQLite connected");
-    // Init Users Table
-    sqliteDB.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE,
-        password TEXT,
-        name TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-  }
-});
 
-//
+// MySQL Connection & Init
 let mysqlDB;
 (async () => {
   try {
@@ -41,10 +25,24 @@ let mysqlDB;
       database: process.env.MYSQL_DB,
     });
     console.log("✅ MySQL connected");
+
+    // Init Users Table (MySQL)
+    await mysqlDB.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
   } catch (err) {
     console.log("❌ MySQL not connected:", err.message);
   }
 })();
+
+//
+
 
 //
 
@@ -62,54 +60,49 @@ app.post("/api/auth/register", async (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
 
   try {
+    if (!mysqlDB) return res.status(500).json({ error: "Database not connected" });
     const hash = await bcrypt.hash(password, 10);
-    sqliteDB.run(
-      `INSERT INTO users (email, password, name) VALUES (?, ?, ?)`,
-      [email, hash, name],
-      function (err) {
-        if (err) {
-          if (err.message.includes("UNIQUE"))
-            return res.status(400).json({ error: "User exists" });
-          return res.status(500).json({ error: err.message });
-        }
-        const token = jwt.sign({ id: this.lastID, email }, JWT_SECRET);
-        res.json({ token });
-      },
-    );
+    try {
+      const [result] = await mysqlDB.query(
+        `INSERT INTO users (email, password, name) VALUES (?, ?, ?)`,
+        [email, hash, name]
+      );
+      const token = jwt.sign({ id: result.insertId, email }, JWT_SECRET);
+      res.json({ token });
+    } catch (err) {
+      if (err.code === 'ER_DUP_ENTRY') 
+        return res.status(400).json({ error: "User exists" });
+      res.status(500).json({ error: err.message });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
-  sqliteDB.get(
-    `SELECT * FROM users WHERE email = ?`,
-    [email],
-    async (err, user) => {
-      if (err || !user)
-        return res.status(400).json({ error: "Invalid credentials" });
+  if (!mysqlDB) return res.status(500).json({ error: "Database not connected" });
+  try {
+    const [rows] = await mysqlDB.query(
+      `SELECT * FROM users WHERE email = ?`,
+      [email]
+    );
+    const user = rows[0];
 
-      const valid = await bcrypt.compare(password, user.password);
-      if (!valid) return res.status(400).json({ error: "Invalid credentials" });
+    if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
-      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
-      res.json({ token });
-    },
-  );
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/api/databases", async (req, res) => {
   try {
-    // SQLite
-    const sqliteTables = await new Promise((resolve) => {
-      sqliteDB.all(
-        `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`,
-        [],
-        (err, rows) => resolve(rows?.map((r) => r.name) || []),
-      );
-    });
-
     // MySQL
     let mysqlTables = [];
     if (mysqlDB) {
@@ -119,11 +112,7 @@ app.get("/api/databases", async (req, res) => {
       } catch {}
     }
 
-    // Postgres
-
-
     res.json([
-      { type: "sqlite", name: "SQLite", tables: sqliteTables },
       { type: "mysql", name: "MySQL", tables: mysqlTables },
     ]);
   } catch (err) {
@@ -136,13 +125,6 @@ app.get("/api/columns/:db/:table", async (req, res) => {
   const { db, table } = req.params;
 
   try {
-    if (db === "sqlite") {
-      sqliteDB.all(`PRAGMA table_info(${table})`, [], (err, rows) =>
-        res.json(rows || []),
-      );
-      return;
-    }
-
     if (db === "mysql") {
       if (!mysqlDB) {
         return res.json([]);
@@ -150,8 +132,6 @@ app.get("/api/columns/:db/:table", async (req, res) => {
       const [cols] = await mysqlDB.query(`DESCRIBE ${table}`);
       return res.json(cols);
     }
-
-
 
     res.json([]);
   } catch {
@@ -173,34 +153,8 @@ app.post("/api/query", async (req, res) => {
   try {
     let lastResult = null;
 
-    // SQLite
-    if (db === "sqlite") {
-      for (const stmt of statements) {
-        const type = stmt.toLowerCase().startsWith("select")
-          ? "select"
-          : "modify";
-
-        if (type === "select") {
-          lastResult = await new Promise((resolve, reject) => {
-            sqliteDB.all(stmt, [], (err, rows) => {
-              if (err) return reject(err);
-              resolve(rows);
-            });
-          });
-        } else {
-          lastResult = await new Promise((resolve, reject) => {
-            sqliteDB.run(stmt, function (err) {
-              if (err) return reject(err);
-              resolve({ lastID: this.lastID, changes: this.changes });
-            });
-          });
-        }
-      }
-      return res.json({ success: true, result: lastResult });
-    }
-
     // MySQL
-    if (db === "mysql") {
+    if (db === "mysql" || !db) { // Default to MySQL if no db specified
       if (!mysqlDB) {
         return res
           .status(400)

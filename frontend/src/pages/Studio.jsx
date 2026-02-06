@@ -9,7 +9,7 @@ export default function Studio() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [databases, setDatabases] = useState([]);
-  const [selectedDB, setSelectedDB] = useState("sqlite");
+  const [selectedDB, setSelectedDB] = useState("mysql");
 
   useEffect(() => {
     api.get("/api/databases").then((res) => setDatabases(res.data));
@@ -56,7 +56,6 @@ export default function Studio() {
             onChange={(e) => setSelectedDB(e.target.value)}
             style={styles.dbSelect}
           >
-            <option value="sqlite">SQLite</option>
             <option value="mysql">MySQL</option>
             <option value="postgres">PostgreSQL</option>
           </select>

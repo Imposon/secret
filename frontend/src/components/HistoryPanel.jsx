@@ -17,7 +17,7 @@ export default function HistoryPanel({ onRerun }) {
 
   async function rerun(item) {
     try {
-      const res = await api.post("/api/query", { query: item.query, db: item.db || "sqlite" });
+      const res = await api.post("/api/query", { query: item.query, db: item.db || "mysql" });
       if (onRerun) onRerun(res.data);
       load();
     } catch (err) {

@@ -34,7 +34,7 @@ export default function History() {
     try {
       // You can call the re-run endpoint or simply run the query again:
       // call /api/query with the saved query
-      const res = await api.post("/api/query", { query: item.query, db: item.db || "sqlite" });
+      const res = await api.post("/api/query", { query: item.query, db: item.db || "mysql" });
       if (res.data && res.data.success) {
         // show results for export
         setSelectedRows(Array.isArray(res.data.result) ? res.data.result : [{ message: res.data.message }]);
