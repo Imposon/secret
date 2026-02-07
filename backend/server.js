@@ -36,6 +36,18 @@ let mysqlDB;
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Init Query History Table (MySQL)
+    await mysqlDB.query(`
+      CREATE TABLE IF NOT EXISTS query_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        query TEXT NOT NULL,
+        db VARCHAR(50) DEFAULT 'mysql',
+        user_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
   } catch (err) {
     console.log("❌ MySQL not connected:", err.message);
   }
@@ -164,6 +176,18 @@ app.post("/api/query", async (req, res) => {
         const [rows] = await mysqlDB.query(stmt);
         lastResult = rows;
       }
+      
+      // Auto-save successful query to history
+      try {
+        await mysqlDB.query(
+          `INSERT INTO query_history (query, db) VALUES (?, ?)`,
+          [query, db || "mysql"]
+        );
+      } catch (historyErr) {
+        console.error("Failed to save to history:", historyErr);
+        // Don't fail the query if history save fails
+      }
+      
       return res.json({ success: true, result: lastResult });
     }
 
@@ -171,6 +195,110 @@ app.post("/api/query", async (req, res) => {
   } catch (err) {
     console.log("SQL Error:", err);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// HISTORY ENDPOINTS
+// Get all query history
+app.get("/api/history", async (req, res) => {
+  if (!mysqlDB) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+  
+  try {
+    const [rows] = await mysqlDB.query(
+      `SELECT id, query, db, created_at AS createdAt FROM query_history ORDER BY created_at DESC LIMIT 100`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("History fetch error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get single query from history
+app.get("/api/history/:id", async (req, res) => {
+  if (!mysqlDB) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+  
+  try {
+    const [rows] = await mysqlDB.query(
+      `SELECT id, query, db, created_at AS createdAt FROM query_history WHERE id = ?`,
+      [req.params.id]
+    );
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Query not found" });
+    }
+    
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("History fetch error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save query to history (called automatically after successful query execution)
+app.post("/api/history", async (req, res) => {
+  const { query, db } = req.body;
+  
+  if (!mysqlDB) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+  
+  if (!query) {
+    return res.status(400).json({ error: "Query is required" });
+  }
+  
+  try {
+    const [result] = await mysqlDB.query(
+      `INSERT INTO query_history (query, db) VALUES (?, ?)`,
+      [query, db || "mysql"]
+    );
+    
+    res.json({ id: result.insertId, success: true });
+  } catch (err) {
+    console.error("History save error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete single query from history
+app.delete("/api/history/:id", async (req, res) => {
+  if (!mysqlDB) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+  
+  try {
+    const [result] = await mysqlDB.query(
+      `DELETE FROM query_history WHERE id = ?`,
+      [req.params.id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Query not found" });
+    }
+    
+    res.json({ success: true, message: "Query deleted" });
+  } catch (err) {
+    console.error("History delete error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear all history
+app.delete("/api/history", async (req, res) => {
+  if (!mysqlDB) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+  
+  try {
+    await mysqlDB.query(`DELETE FROM query_history`);
+    res.json({ success: true, message: "All history cleared" });
+  } catch (err) {
+    console.error("History clear error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
