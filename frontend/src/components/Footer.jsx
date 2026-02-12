@@ -1,17 +1,20 @@
-// src/components/Footer.jsx
 import React from "react";
+import { Link } from "react-router-dom";
+import "../App.css";
 
 export default function Footer() {
   return (
-    <footer className="footer">
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#bdbdbd" }}>
-          <div>© {new Date().getFullYear()} SQLRunner</div>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/pricing" style={{ color: "#bdbdbd" }}>Pricing</a>
-            <a href="/history" style={{ color: "#bdbdbd" }}>History</a>
-            <a href="/auth" style={{ color: "#bdbdbd" }}>Account</a>
-          </div>
+    <footer className="apple-footer">
+      <div className="footer-content">
+        <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+          <span>© {new Date().getFullYear()} SQLRunner</span>
+          <span style={{color: "#424245"}}>|</span>
+          <span style={{color: "#86868b"}}>Designed with precision.</span>
+        </div>
+        <div className="footer-links">
+          <Link to="/pricing" className="footer-link">Pricing</Link>
+          <Link to="/history" className="footer-link">History</Link>
+          <Link to="/auth" className="footer-link">Account</Link>
         </div>
       </div>
     </footer>

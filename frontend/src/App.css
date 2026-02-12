@@ -2,7 +2,8 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f3f4f6;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* Layout */
@@ -15,8 +16,8 @@ body {
 /* Sidebar */
 .sidebar {
   width: 260px;
-  background: #1f2937;
-  color: #fff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   padding: 18px;
   overflow-y: auto;
   border-right: 1px solid #111827;
@@ -63,7 +64,7 @@ body {
   flex: 1;
   padding: 22px;
   overflow-y: auto;
-  background: #f8fafc;
+  background: var(--bg-primary);
 }
 h1 {
   color: #b91c1c;
@@ -80,8 +81,8 @@ h1 {
 
 /* SQL cell */
 .sql-cell {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: #1c1c1e;
+  border: 1px solid #333;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 18px;
@@ -109,7 +110,7 @@ h1 {
   cursor: pointer;
 }
 .run-btn {
-  background: #2563eb;
+  background: var(--accent-blue);
   color: white;
 }
 .delete-btn {
@@ -120,10 +121,10 @@ h1 {
 /* Result area */
 .result-box {
   margin-top: 12px;
-  background: #f3f4f6;
+  background: var(--bg-secondary);
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #333;
 }
 .table-container {
   overflow-x: auto;
@@ -131,11 +132,12 @@ h1 {
 table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 th {
-  background: #2563eb;
-  color: #fff;
+  background: #2c2c2e;
+  color: var(--text-primary);
   padding: 10px;
   text-align: left;
 }
@@ -191,7 +193,7 @@ td {
 .history-page {
   padding: 100px 40px 60px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  background: var(--bg-primary);
 }
 
 .history-container {

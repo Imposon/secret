@@ -1,186 +1,88 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import "../App.css";
 
 export default function Home() {
   return (
-    <div style={styles.wrapper}>
-      {/* NAVBAR */}
-      <nav style={styles.navbar}>
-        <div style={styles.logo}>SQLRunner</div>
-        <div style={styles.links}>
-          <Link to="/" style={styles.navLink}>Home</Link>
-          <Link to="/studio" style={styles.navLink}>Studio</Link>
-          <Link to="/history" style={styles.navLink}>History</Link>
-          <Link to="/auth" style={styles.loginBtn}>Login</Link>
-        </div>
-      </nav>
+    <div className="home-wrapper">
+      <Navbar />
 
-      {/* HERO SECTION */}
-      <section style={styles.hero}>
-        <h1 style={styles.heroTitle}>The Ultimate SQL Playground</h1>
-
-        <p style={styles.heroSubtitle}>
-          Execute SQL instantly. Autocomplete with schema intelligence.
-          Multi-database execution across SQLite, MySQL & PostgreSQL.
-        </p>
-
-        <Link to="/studio" style={styles.ctaButton}>
-          Start Querying →
-        </Link>
-      </section>
-
-      {/* FEATURES */}
-      <section style={styles.features}>
-        <div style={styles.featureBox}>
-          <span style={styles.emoji}>⚡</span>
-          <h3 style={styles.featureTitle}>Lightning Fast</h3>
-          <p style={styles.featureText}>
-            Execute SQL instantly across SQLite, MySQL & PostgreSQL.
+      <main>
+        {/* HERO SECTION */}
+        <section className="hero-section">
+          <h1 className="hero-title">
+            SQL. Reimagined.
+          </h1>
+          <p className="hero-subtitle">
+            The ultimate playground for developers. 
+            Execute queries across MySQL, SQLite, and PostgreSQL with zero setup.
           </p>
-        </div>
+          
+          <div className="cta-group">
+            <Link to="/studio" className="primary-btn">
+              Get Started
+            </Link>
+            <Link to="/pricing" className="secondary-link">
+              View Pricing <span>›</span>
+            </Link>
+          </div>
+        </section>
 
-        <div style={styles.featureBox}>
-          <span style={styles.emoji}>🧠</span>
-          <h3 style={styles.featureTitle}>Smart Autocomplete</h3>
-          <p style={styles.featureText}>
-            Schema-aware suggestions for tables & columns.
-          </p>
-        </div>
+        {/* BENTO GRID FEATURES */}
+        <section className="bento-section">
+          <div className="bento-grid">
+            
+            {/* Box 1 (Large) */}
+            <div className="bento-item bento-large">
+              <div className="bento-content">
+                <span className="feature-tag">Universal Compatibility</span>
+                <h3>One Studio. Any DB.</h3>
+                <p>Connect to MySQL, PostgreSQL, and SQLite instantly. Switch context in milliseconds.</p>
+              </div>
+              <div style={{ marginTop: 40, width: '100%', height: 120, background: 'linear-gradient(90deg, #2c2c2e 0%, #1c1c1e 100%)', borderRadius: 12, border: '1px solid #333' }}>
+                {/* Visual placeholder for DB connection */}
+                <div style={{ padding: 20, display: 'flex', gap: 12 }}>
+                   <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57' }}></div>
+                   <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#febc2e' }}></div>
+                   <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#28c840' }}></div>
+                </div>
+              </div>
+            </div>
 
-        <div style={styles.featureBox}>
-          <span style={styles.emoji}>📜</span>
-          <h3 style={styles.featureTitle}>Query History</h3>
-          <p style={styles.featureText}>
-            Re-run anything, anytime. Never lose a query again.
-          </p>
-        </div>
-      </section>
+            {/* Box 2 */}
+            <div className="bento-item" style={{ background: 'linear-gradient(135deg, #0f1c2e 0%, #08101a 100%)' }}>
+              <div className="bento-icon">⚡</div>
+              <div className="bento-content">
+                <h3>Lightning Fast</h3>
+                <p>Built on Node.js for real-time execution.</p>
+              </div>
+            </div>
 
-      {/* FOOTER */}
-      <footer style={styles.footer}>
-        © 2025 SQLRunner — Built for developers who move fast 🚀
-      </footer>
+            {/* Box 3 */}
+            <div className="bento-item">
+              <div className="bento-content">
+                <span className="feature-tag" style={{ color: '#bf5af2' }}>Intelligence</span>
+                <h3>Autofill</h3>
+                <p>Content-aware SQL suggestions as you type.</p>
+              </div>
+            </div>
+
+            {/* Box 4 (Large) */}
+            <div className="bento-item bento-large" style={{ background: 'linear-gradient(135deg, #1c1c1e 0%, #000 100%)' }}>
+               <div className="bento-content">
+                <span className="feature-tag" style={{ color: '#2997ff' }}>History & Analytics</span>
+                <h3>Never lose a query.</h3>
+                <p>Every execution is saved. Search, filter, and re-run your history anytime.</p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }
-
-/* --------------------------------------- */
-/*              INLINE STYLES              */
-/* --------------------------------------- */
-
-const styles = {
-  wrapper: {
-    minHeight: "100vh",
-    background: "#0b0f17",
-    color: "white",
-    fontFamily: "Inter, sans-serif",
-  },
-
-  navbar: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "20px 60px",
-    alignItems: "center",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.04)",
-    backdropFilter: "blur(8px)",
-    position: "sticky",
-    top: 0,
-    zIndex: 999,
-  },
-
-  logo: {
-    fontSize: "32px",
-    fontWeight: "800",
-    background: "linear-gradient(90deg, #ff1e56, #ffac41)",
-    WebkitBackgroundClip: "text",
-    color: "transparent",
-  },
-
-  links: {
-    display: "flex",
-    gap: "30px",
-    alignItems: "center",
-  },
-
-  navLink: {
-    color: "white",
-    fontSize: "16px",
-    fontWeight: "500",
-    opacity: 0.8,
-    textDecoration: "none",
-  },
-
-  loginBtn: {
-    padding: "8px 18px",
-    background: "#ff3b6d",
-    borderRadius: "6px",
-    color: "white",
-    fontWeight: "600",
-    textDecoration: "none",
-  },
-
-  hero: {
-    textAlign: "center",
-    padding: "120px 40px 80px",
-  },
-
-  heroTitle: {
-    fontSize: "48px",
-    fontWeight: "900",
-    marginBottom: "20px",
-  },
-
-  heroSubtitle: {
-    fontSize: "18px",
-    opacity: 0.8,
-    maxWidth: "800px",
-    margin: "0 auto 40px",
-  },
-
-  ctaButton: {
-    display: "inline-block",
-    padding: "14px 28px",
-    background: "#ff3b6d",
-    color: "white",
-    borderRadius: "8px",
-    fontWeight: "600",
-    fontSize: "18px",
-    textDecoration: "none",
-  },
-
-  features: {
-    marginTop: "80px",
-    display: "flex",
-    justifyContent: "center",
-    gap: "70px",
-    padding: "20px 40px 60px",
-  },
-
-  featureBox: {
-    width: "260px",
-    textAlign: "center",
-  },
-
-  emoji: {
-    fontSize: "40px",
-  },
-
-  featureTitle: {
-    marginTop: "12px",
-    fontSize: "22px",
-    fontWeight: "700",
-  },
-
-  featureText: {
-    marginTop: "8px",
-    opacity: 0.7,
-  },
-
-  footer: {
-    padding: "40px",
-    textAlign: "center",
-    opacity: 0.6,
-    marginTop: "60px",
-  },
-};
