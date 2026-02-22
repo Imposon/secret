@@ -24,11 +24,6 @@ const UNIVERSAL_KEYWORDS = [
   "NOT", "IN", "IS NULL", "IS NOT NULL"
 ];
 
-const POSTGRES_COMMANDS = [
-  "SERIAL", "BIGSERIAL", "RETURNING", "CREATE EXTENSION", "UPSERT",
-  "ON CONFLICT", "JSON", "JSONB", "ARRAY", "UNNEST", "ILIKE",
-  "CREATE SCHEMA", "DROP SCHEMA", "GRANT", "REVOKE"
-];
 
 const MYSQL_COMMANDS = [
   "AUTO_INCREMENT", "DESCRIBE", "SHOW TABLES", "SHOW COLUMNS",
@@ -50,9 +45,9 @@ const SQL_KEYWORDS = [
 /* autocomplete dropdown theme for dark UI */
 const autoTheme = EditorView.theme({
   ".cm-tooltip-autocomplete": {
-    backgroundColor: "#15171b",
+    backgroundColor: "#0153f6ff",
     color: "white",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid rgba(250, 0, 0, 0.08)",
     borderRadius: "8px",
     padding: "6px 0",
     fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
